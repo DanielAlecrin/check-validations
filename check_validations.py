@@ -6,127 +6,82 @@ resourceDirectoryEnglish = directory + "resources/i18n/validation/messages_en.pr
 resourceDirectorySpanish = directory + "resources/i18n/validation/messages_es.properties"
 
 
-validations = []
-incorrectValidations = []
-for filename in glob.iglob(directory + "**/*Event.java", recursive=True):
+def find_validations(resourceDirectory):
+    validations = []
 
-    f = open(filename, "r")
+    for filename in glob.iglob(resourceDirectory, recursive=True):
+
+        f = open(filename, "r")
+        if f.mode == "r":
+            contents = f.read()
+
+            for i in contents.splitlines():
+                stringWithoutSpaces = i.strip()
+
+                if "@" in stringWithoutSpaces and "message" in stringWithoutSpaces:
+                    stringWithoutSpaces = stringWithoutSpaces.replace("\"", "")
+                    stringWithoutSpaces = stringWithoutSpaces.split("{")
+                    stringWithoutSpaces = stringWithoutSpaces[1].split("}")
+
+                    validations.append(stringWithoutSpaces[0])
+    
+    return validations
+
+def inspect_validations_literals(resourceDirectory):
+    incorrectValidations = []
+    
+    f = open(resourceDirectory, "r")
     if f.mode == "r":
         contents = f.read()
-        # print(contents)
+        lines = contents.splitlines()
 
-        for i in contents.splitlines():
-            stringWithoutSpaces = i.strip()
+        for valid in all_validations:
+            isCorrect = False
+            for line in lines:
+                if valid in line:
+                    isCorrect = True
+                    break
+            
+            if isCorrect == False:
+                incorrectValidations.append(valid)
+    
+    return incorrectValidations
 
-            if "@" in stringWithoutSpaces and "message" in stringWithoutSpaces:
-                stringWithoutSpaces = stringWithoutSpaces.replace("\"", "")
-                stringWithoutSpaces = stringWithoutSpaces.split("{")
-                stringWithoutSpaces = stringWithoutSpaces[1].split("}")
-                # print(stringWithoutSpaces[0])
+all_validations = []
 
-                validations.append(stringWithoutSpaces[0])
+all_validations.extend(find_validations(directory + "**/*Event.java"))
+all_validations.extend(find_validations(directory + "**/*Dto.java"))
+all_validations.extend(find_validations(directory + "**/*DTO.java"))
 
-for filename in glob.iglob(directory + "**/*Dto.java", recursive=True):
-    f = open(filename, "r")
-    if f.mode == "r":
-        contents = f.read()
-        # print(contents)
+print("#####################\n")
+print("#####################\n")
+print("ABAIXO ESTÃO AS VALIDATIONS QUE ESTÃO SEM AS LITERAIS NOS ARQUIVOS\n")
+print("#####################\n")
+print("#####################\n")
 
-        for i in contents.splitlines():
-            stringWithoutSpaces = i.strip()
+## Português
+wrong_validations_pt = inspect_validations_literals(resourceDirectoryPortuguese)
 
-            if "@" in stringWithoutSpaces and "message" in stringWithoutSpaces:
-                stringWithoutSpaces = stringWithoutSpaces.replace("\"", "")
-                stringWithoutSpaces = stringWithoutSpaces.split("{")
-                stringWithoutSpaces = stringWithoutSpaces[1].split("}")
-                # print(stringWithoutSpaces[0])
-
-                validations.append(stringWithoutSpaces[0])
-
-for filename in glob.iglob(directory + "**/*DTO.java", recursive=True):
-    f = open(filename, "r")
-    if f.mode == "r":
-        contents = f.read()
-        # print(contents)
-
-        for i in contents.splitlines():
-            stringWithoutSpaces = i.strip()
-
-            if "@" in stringWithoutSpaces and "message" in stringWithoutSpaces:
-                stringWithoutSpaces = stringWithoutSpaces.replace("\"", "")
-                stringWithoutSpaces = stringWithoutSpaces.split("{")
-                stringWithoutSpaces = stringWithoutSpaces[1].split("}")
-                # print(stringWithoutSpaces[0])
-
-                validations.append(stringWithoutSpaces[0])
-
-
-# for v in validations:
-#     print(v)    
-print("\n ###############")
-
-
-f = open(resourceDirectoryPortuguese, "r")
-if f.mode == "r":
-    contents = f.read()
-    lines = contents.splitlines()
-
-    for valid in validations:
-        isCorrect = False
-        messageAndDetail = 0
-        for line in lines:
-            if valid in line:
-                isCorrect = True
-        
-        if isCorrect == False:
-            incorrectValidations.append(valid)
-
-print("Incorrect validations em Portugues: "  + str(len(incorrectValidations)))
-for incorrectValid in incorrectValidations:
-    print(incorrectValid)
+print("Validations incorretas em Portugues: "  + str(len(wrong_validations_pt)))
+for wrongVld in wrong_validations_pt:
+    print(wrongVld)
 
 print("\n")
 
-incorrectValidations = []
-f = open(resourceDirectoryEnglish, "r")
-if f.mode == "r":
-    contents = f.read()
-    lines = contents.splitlines()
+## Espanhol
+wrong_validations_es = inspect_validations_literals(resourceDirectorySpanish)
 
-    for valid in validations:
-        isCorrect = False
-        messageAndDetail = 0
-        for line in lines:
-            if valid in line:
-                isCorrect = True
-        
-        if isCorrect == False:
-            incorrectValidations.append(valid)
-
-print("Incorrect validations em Ingles: "  + str(len(incorrectValidations)))
-for incorrectValid in incorrectValidations:
-    print(incorrectValid)
+print("Validations incorretas em Espanhol: "  + str(len(wrong_validations_es)))
+for wrongVld in wrong_validations_es:
+    print(wrongVld)
 
 print("\n")
 
-incorrectValidations = []
-f = open(resourceDirectorySpanish, "r")
-if f.mode == "r":
-    contents = f.read()
-    lines = contents.splitlines()
+## Ingles
+wrong_validations_en = inspect_validations_literals(resourceDirectoryEnglish)
 
-    for valid in validations:
-        isCorrect = False
-        messageAndDetail = 0
-        for line in lines:
-            if valid in line:
-                isCorrect = True
-        
-        if isCorrect == False:
-            incorrectValidations.append(valid)
-
-print("Incorrect validations em Espanhol: "  + str(len(incorrectValidations)))
-for incorrectValid in incorrectValidations:
-    print(incorrectValid)
+print("Validations incorretas em Ingles: "  + str(len(wrong_validations_en)))
+for wrongVld in wrong_validations_en:
+    print(wrongVld)
 
 print("\n")
